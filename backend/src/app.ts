@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 
-import { attachmentsRoute } from './routes/attachments.js';
-import { invoicesRoute } from './routes/invoices.js';
+import { attachmentsRoute } from './routes/attachments';
+import { invoicesRoute } from './routes/invoices';
 
 export function createApp() {
   const app = new Hono();
