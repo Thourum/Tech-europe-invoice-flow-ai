@@ -1,0 +1,3 @@
+[submodule "frontEnd"]
+	path = frontEnd
+	url = git@github.com:piyushpalod/flow-invoice-bot.git
