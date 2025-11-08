@@ -1,13 +1,15 @@
 ## InvoiceFlow AI Backend
 
-Node-based Hono API for processing invoices with OpenAI extraction, Turso storage (libSQL + Drizzle), and AWS S3 attachment handling. Deploy-ready for Vercel Functions (Node runtime).
+Node-based Hono API for processing invoices with OpenAI extraction, Turso storage (libSQL + Drizzle), Better Auth sessions, and Vercel Blob attachment handling. Deploy-ready for Vercel Functions (Node runtime).
 
 ### Features
 
 - REST endpoints for invoice ingestion, listing, retrieval, and status updates
+- Better Auth-powered session authentication
 - OpenAI GPT-4o-based extraction with Zod validation
 - Turso (libSQL) persistence with Drizzle ORM and migrations
-- AWS S3 pre-signed uploads & downloads for invoice attachments
+- Vercel Blob pre-signed uploads & downloads for invoice attachments
+- Gmail OAuth integration to surface invoice emails (metadata pipeline)
 - Vercel compatible deployment with Node runtime
 
 ### Getting Started
@@ -50,20 +52,25 @@ Deploy via Vercel (Node runtime). Ensure environment variables are configured in
 - `OPENAI_API_KEY`
 - `TURSO_DATABASE_URL`
 - `TURSO_AUTH_TOKEN`
-- `AWS_REGION`
-- `AWS_ACCESS_KEY_ID`
-- `AWS_SECRET_ACCESS_KEY`
-- `S3_BUCKET_NAME`
-- `APP_URL` (public URL used in notifications / links)
+- `BETTER_AUTH_SECRET`
+- `BETTER_AUTH_URL`
+- `GOOGLE_OAUTH_CLIENT_ID`
+- `GOOGLE_OAUTH_CLIENT_SECRET`
+- `GOOGLE_OAUTH_REDIRECT_URI`
+- `APP_URL` (public URL used for redirects / notifications)
 
 ### API Overview
 
-- `GET /api/health` – service health check
-- `POST /api/attachments/presign` – pre-signed S3 PUT URL
-- `POST /api/invoices/process` – run OpenAI extraction and persist invoice
-- `GET /api/invoices` – list invoices with filters & cursor pagination
-- `GET /api/invoices/:id` – fetch invoice with line items & attachments
-- `PATCH /api/invoices/:id` – update status / approver notes
+- `GET /health` – service health check
+- `POST /attachments/presign` – pre-signed upload URL via Vercel Blob
+- `POST /invoices/process` – run OpenAI extraction and persist invoice
+- `GET /invoices` – list invoices with filters & cursor pagination
+- `GET /invoices/:id` – fetch invoice with line items & attachments
+- `PATCH /invoices/:id` – update status / approver notes
+- `POST /integrations/gmail/link` – initiate Gmail OAuth (auth required)
+- `GET /integrations/gmail/oauth/callback` – persist Gmail account tokens
+- `POST /integrations/gmail/check` – list recent Gmail messages with invoice-like attachments
+- Better Auth routes are available under `/api/auth/*` (sign-in, sign-up, sessions, etc.)
 
 ### Testing & Tooling
 
