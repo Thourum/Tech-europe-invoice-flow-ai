@@ -19,6 +19,7 @@ import {
   extractInvoiceData,
   type AttachmentInput
 } from '../lib/openai';
+import { logger, type AppEnv } from '../lib/logger';
 
 const attachmentsInputSchema = z.object({
   key: z
@@ -64,13 +65,23 @@ const updateInvoiceSchema = z
     'At least one field must be provided'
   );
 
-export const invoicesRoute = new Hono();
+export const invoicesRoute = new Hono<AppEnv>();
 
 invoicesRoute.post(
   '/process',
   zValidator('json', processInvoiceSchema),
   async (c) => {
     const { emailId, content, attachments } = c.req.valid('json');
+    const log = c.get('logger') ?? logger;
+
+    log.trace(
+      {
+        emailId,
+        hasContent: Boolean(content),
+        attachmentCount: attachments.length
+      },
+      'Processing invoice request'
+    );
 
     const attachmentInputs: AttachmentInput[] = await Promise.all(
       attachments.map(async (attachment) => {
@@ -90,6 +101,14 @@ invoicesRoute.post(
       emailContent: content,
       attachments: attachmentInputs
     });
+
+    log.trace(
+      {
+        vendorName: extraction.vendor.name,
+        invoiceNumber: extraction.invoice.number
+      },
+      'Completed invoice data extraction'
+    );
 
     const invoiceId = ulid();
     const now = Date.now();
@@ -155,8 +174,17 @@ invoicesRoute.post(
     });
 
     if (!result) {
+      log.error(
+        { emailId, attachmentCount: attachments.length },
+        'Invoice transaction returned no result'
+      );
       return c.json({ error: 'Failed to create invoice' }, 500);
     }
+
+    log.trace(
+      { invoiceId: result.id, vendorName: result.vendorName },
+      'Created invoice record'
+    );
 
     return c.json({
       invoice: serializeInvoice(result),
@@ -166,7 +194,13 @@ invoicesRoute.post(
 );
 
 invoicesRoute.get('/', zValidator('query', listInvoicesSchema), async (c) => {
+  const log = c.get('logger') ?? logger;
   const { status, vendor, q, cursor, limit } = c.req.valid('query');
+
+  log.trace(
+    { status, vendor, q, cursor, limit },
+    'Listing invoices'
+  );
   const conditions = [];
 
   if (status) {
@@ -233,6 +267,11 @@ invoicesRoute.get('/', zValidator('query', listInvoicesSchema), async (c) => {
     }
   }
 
+  log.trace(
+    { resultCount: rows.length, hasNextCursor: Boolean(nextCursor) },
+    'Listed invoices'
+  );
+
   return c.json({
     invoices: rows.map(serializeInvoice),
     nextCursor
@@ -240,7 +279,10 @@ invoicesRoute.get('/', zValidator('query', listInvoicesSchema), async (c) => {
 });
 
 invoicesRoute.get('/:id', async (c) => {
+  const log = c.get('logger') ?? logger;
   const id = c.req.param('id');
+
+  log.trace({ id }, 'Fetching invoice by id');
 
   const invoice = await db.query.invoices.findFirst({
     where: eq(invoices.id, id),
@@ -251,8 +293,11 @@ invoicesRoute.get('/:id', async (c) => {
   });
 
   if (!invoice) {
+    log.warn({ id }, 'Invoice not found');
     return c.json({ error: 'Invoice not found' }, 404);
   }
+
+  log.trace({ id }, 'Fetched invoice by id');
 
   return c.json({
     invoice: serializeInvoice(invoice)
@@ -263,8 +308,18 @@ invoicesRoute.patch(
   '/:id',
   zValidator('json', updateInvoiceSchema),
   async (c) => {
+    const log = c.get('logger') ?? logger;
     const id = c.req.param('id');
     const body = c.req.valid('json');
+
+    log.trace(
+      {
+        id,
+        status: body.status,
+        hasApproverNotes: body.approverNotes !== undefined
+      },
+      'Updating invoice'
+    );
 
     const updatePayload: Partial<{
       status: InvoiceStatus;
@@ -291,6 +346,7 @@ invoicesRoute.patch(
       .then((rows) => rows[0]);
 
     if (!result) {
+      log.warn({ id }, 'Invoice not found during update');
       return c.json({ error: 'Invoice not found' }, 404);
     }
 
@@ -303,8 +359,11 @@ invoicesRoute.patch(
     });
 
     if (!invoice) {
+      log.warn({ id }, 'Invoice not found after update');
       return c.json({ error: 'Invoice not found' }, 404);
     }
+
+    log.trace({ id }, 'Updated invoice');
 
     return c.json({
       invoice: serializeInvoice(invoice)

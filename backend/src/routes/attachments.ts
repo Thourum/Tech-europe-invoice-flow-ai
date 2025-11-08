@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { ulid } from 'ulid';
 
 import { createPresignedUploadUrl } from '../lib/blob';
+import { logger, type AppEnv } from '../lib/logger';
 
 const ALLOWED_CONTENT_TYPES = new Set([
   'application/pdf',
@@ -31,15 +32,25 @@ const presignSchema = z
     }
   });
 
-export const attachmentsRoute = new Hono();
+export const attachmentsRoute = new Hono<AppEnv>();
 
 attachmentsRoute.post(
   '/presign',
   zValidator('json', presignSchema),
   async (c) => {
     const { filename, contentType, size } = c.req.valid('json');
+    const log = c.get('logger') ?? logger;
+
+    log.trace(
+      { filename, contentType, size },
+      'Received attachment presign request'
+    );
 
     if (size && size > MAX_UPLOAD_SIZE_BYTES) {
+      log.warn(
+        { filename, contentType, size, maxAllowed: MAX_UPLOAD_SIZE_BYTES },
+        'Attachment exceeds maximum upload size'
+      );
       return c.json(
         {
           error: 'Attachment too large',
@@ -52,11 +63,15 @@ attachmentsRoute.post(
     const sanitizedFilename = sanitizeFilename(filename);
     const objectKey = `attachments/${ulid()}-${sanitizedFilename}`;
 
+    log.trace({ objectKey }, 'Generated object key for attachment');
+
     const presign = await createPresignedUploadUrl({
       key: objectKey,
       contentType,
       maxSizeBytes: size
     });
+
+    log.trace({ objectKey }, 'Created presigned upload URL');
 
     return c.json({
       key: objectKey,
