@@ -3,7 +3,7 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 import { ulid } from 'ulid';
 
-import { createPresignedUploadUrl } from '../lib/s3';
+import { createPresignedUploadUrl } from '../lib/blob';
 
 const ALLOWED_CONTENT_TYPES = new Set([
   'application/pdf',
@@ -52,15 +52,15 @@ attachmentsRoute.post(
     const sanitizedFilename = sanitizeFilename(filename);
     const objectKey = `attachments/${ulid()}-${sanitizedFilename}`;
 
-    const { uploadUrl, expiresIn } = await createPresignedUploadUrl({
+    const presign = await createPresignedUploadUrl({
       key: objectKey,
-      contentType
+      contentType,
+      maxSizeBytes: size
     });
 
     return c.json({
       key: objectKey,
-      uploadUrl,
-      expiresIn,
+      ...presign,
       maxSize: MAX_UPLOAD_SIZE_BYTES
     });
   }

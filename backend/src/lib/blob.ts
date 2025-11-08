@@ -1,46 +1,5 @@
-import { generateUploadUrl, head } from '@vercel/blob';
-
-const DEFAULT_PRESIGN_TTL_SECONDS = 900;
-
-type PresignOptions = {
-  key: string;
-  contentType?: string;
-  expiresIn?: number;
-};
-
-export async function createPresignedUploadUrl({
-  key,
-  contentType,
-  expiresIn = DEFAULT_PRESIGN_TTL_SECONDS
-}: PresignOptions) {
-  const { url } = await generateUploadUrl({
-    pathname: key,
-    allowedContentTypes: contentType ? [contentType] : undefined
-  });
-
-  return {
-    uploadUrl: url,
-    expiresIn
-  };
-}
-
-export async function createPresignedDownloadUrl({
-  key,
-  expiresIn = DEFAULT_PRESIGN_TTL_SECONDS
-}: Omit<PresignOptions, 'contentType'>) {
-  const metadata = await head(key);
-  const downloadUrl = metadata.downloadUrl ?? metadata.url;
-
-  return {
-    downloadUrl,
-    expiresIn
-  };
-}
-
-import {
-  generateClientTokenFromReadWriteToken,
-  getDownloadUrl
-} from '@vercel/blob';
+import { getDownloadUrl, head } from '@vercel/blob';
+import { generateClientTokenFromReadWriteToken } from '@vercel/blob/client';
 
 const DEFAULT_PRESIGN_TTL_SECONDS = 900;
 const DEFAULT_BLOB_API_URL = 'https://vercel.com/api/blob';
@@ -98,15 +57,16 @@ export async function createPresignedUploadUrl({
   };
 }
 
-export function createPresignedDownloadUrl({
+export async function createPresignedDownloadUrl({
   key,
   expiresIn = DEFAULT_PRESIGN_TTL_SECONDS
-}: Omit<PresignOptions, 'contentType' | 'maxSizeBytes'>): DownloadPresignResult {
+}: Omit<PresignOptions, 'contentType' | 'maxSizeBytes'>): Promise<DownloadPresignResult> {
   const sanitizedKey = normalizeKey(key);
   const publicUrl = resolveBlobUrl(sanitizedKey);
+  const metadata = await head(publicUrl);
 
   return {
-    downloadUrl: getDownloadUrl(publicUrl),
+    downloadUrl: metadata.downloadUrl ?? getDownloadUrl(publicUrl),
     publicUrl,
     expiresIn
   };

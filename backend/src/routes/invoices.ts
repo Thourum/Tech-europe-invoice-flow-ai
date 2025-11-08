@@ -10,9 +10,11 @@ import {
   invoiceLineItems,
   invoiceStatusOptions,
   invoices,
-  type InvoiceStatus
+  type InvoiceStatus,
+  type InvoiceLineItem,
+  type Attachment as AttachmentRow
 } from '../db/schema';
-import { createPresignedDownloadUrl } from '../lib/s3';
+import { createPresignedDownloadUrl } from '../lib/blob';
 import {
   extractInvoiceData,
   type AttachmentInput
@@ -310,11 +312,10 @@ invoicesRoute.patch(
   }
 );
 
-type InvoiceWithRelations = NonNullable<
-  Awaited<
-    ReturnType<typeof db.query.invoices.findFirst>
-  >
->;
+type InvoiceWithRelations = (typeof invoices.$inferSelect) & {
+  lineItems: InvoiceLineItem[];
+  attachments: AttachmentRow[];
+};
 
 function serializeInvoice(invoice: InvoiceWithRelations) {
   return {
