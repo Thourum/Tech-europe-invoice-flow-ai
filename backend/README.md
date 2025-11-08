@@ -67,9 +67,9 @@ Deploy via Vercel (Node runtime). Ensure environment variables are configured in
 - `GET /invoices` – list invoices with filters & cursor pagination
 - `GET /invoices/:id` – fetch invoice with line items & attachments
 - `PATCH /invoices/:id` – update status / approver notes
-- `POST /integrations/gmail/link` – initiate Gmail OAuth (auth required)
-- `GET /integrations/gmail/oauth/callback` – persist Gmail account tokens
-- `POST /integrations/gmail/check` – list recent Gmail messages with invoice-like attachments
+- `POST /api/gmail/link` – initiate Gmail OAuth (auth required)
+- `GET /api/gmail/oauth/callback` – persist Gmail account tokens
+- `POST /api/gmail/check` – list recent Gmail messages with invoice-like attachments
 - Better Auth routes are available under `/api/auth/*` (sign-in, sign-up, sessions, etc.)
 
 ### Testing & Tooling

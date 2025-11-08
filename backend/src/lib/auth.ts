@@ -23,6 +23,14 @@ export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: 'sqlite'
   }),
+  socialProviders: {
+    google: {
+      clientId: getEnvVar('GOOGLE_OAUTH_CLIENT_ID'),
+      clientSecret: getEnvVar('GOOGLE_OAUTH_CLIENT_SECRET'),
+      accessType: 'offline',
+      prompt: 'select_account consent'
+    }
+  },
   emailAndPassword: {
     enabled: true
   }

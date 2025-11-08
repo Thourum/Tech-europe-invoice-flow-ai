@@ -43,7 +43,7 @@ export function createApp() {
 
   app.route('/api/auth', authRoute);
   app.route('/attachments', attachmentsRoute);
-  app.route('/integrations/gmail', gmailRoute);
+  app.route('/api/gmail', gmailRoute);
   app.route('/invoices', invoicesRoute);
 
   app.notFound((c) => {

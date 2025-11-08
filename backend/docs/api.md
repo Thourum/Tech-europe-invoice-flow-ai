@@ -187,7 +187,7 @@ Update invoice status and/or approver notes.
 
 ## Gmail Integration
 
-### `POST /integrations/gmail/link`
+### `POST /api/gmail/link`
 
 Initiate the Gmail OAuth consent flow for the authenticated user.
 
@@ -205,13 +205,13 @@ Initiate the Gmail OAuth consent flow for the authenticated user.
 The client should redirect the user to `authorizationUrl`. `state` must be
 preserved and returned to the callback untouched.
 
-### `GET /integrations/gmail/oauth/callback`
+### `GET /api/gmail/oauth/callback`
 
 OAuth callback endpoint that is invoked by Google after user consent.
 
 - **Query Parameters**
   - `code` – authorization code (required)
-  - `state` – opaque state issued by `/integrations/gmail/link` (required)
+- `state` – opaque state issued by `/api/gmail/link` (required)
   - `error` – present when Google denies access (optional)
   - `redirect` – optional relative URL to redirect after successful linkage
 
@@ -230,7 +230,7 @@ OAuth callback endpoint that is invoked by Google after user consent.
   that path (relative to `APP_URL`) with `status=linked` and the account email in
   the query string.
 
-### `POST /integrations/gmail/check`
+### `POST /api/gmail/check`
 
 Fetch recent Gmail messages that are likely to contain invoices. OCR is _not_
 invoked yet; only metadata is returned.
@@ -289,9 +289,9 @@ invoked yet; only metadata is returned.
 | `GET /invoices` | List invoices with filters/pagination | No |
 | `GET /invoices/:id` | Fetch single invoice with relations | No |
 | `PATCH /invoices/:id` | Update invoice status/notes | No |
-| `POST /integrations/gmail/link` | Begin Gmail OAuth flow | Session |
-| `GET /integrations/gmail/oauth/callback` | Gmail OAuth callback handler | No |
-| `POST /integrations/gmail/check` | Fetch Gmail messages with invoice attachments | Session |
+| `POST /api/gmail/link` | Begin Gmail OAuth flow | Session |
+| `GET /api/gmail/oauth/callback` | Gmail OAuth callback handler | No |
+| `POST /api/gmail/check` | Fetch Gmail messages with invoice attachments | Session |
 | `POST /api/auth/sign-in/email` | Sign in with email/password | No |
 | `POST /api/auth/sign-up/email` | Register with email/password | No |
 | `POST /api/auth/sign-out` | Destroy current session | Session |
@@ -322,7 +322,7 @@ Unless stated otherwise, error responses use the structure:
 
 ## Future Work
 
-- OCR pipeline integration for Gmail metadata (`/integrations/gmail/check`).
+- OCR pipeline integration for Gmail metadata (`/api/gmail/check`).
 - Background job orchestration for scheduled Gmail polling.
 
 
