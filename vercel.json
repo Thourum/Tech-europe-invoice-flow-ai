@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "functions": {
+    "backend/api/index.ts": {
+      "runtime": "nodejs"
+    }
+  },
+  "framework": "hono",
+  "buildCommand": "npm run build",
+  "installCommand": "npm install"
+}
+
