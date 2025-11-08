@@ -1,7 +1,8 @@
 {
   "functions": {
     "api/index.ts": {
-      "runtime": "nodejs22.x"
+      "runtime": "nodejs22.x",
+      "permissions": ["read_write_blob"]
     }
   },
   "framework": "none",

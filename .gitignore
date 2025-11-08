@@ -6,3 +6,4 @@ drizzle/*.sql
 package-lock.json
 
 
+.env*.local
