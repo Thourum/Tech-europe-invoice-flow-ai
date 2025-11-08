@@ -191,17 +191,6 @@ function extractResponseText(
     return content;
   }
 
-  if (Array.isArray(content)) {
-    const textPart = content.find(
-      (part): part is { type: 'text'; text: string } =>
-        typeof part === 'object' && part?.type === 'text'
-    );
-
-    if (textPart) {
-      return textPart.text;
-    }
-  }
-
   throw new InvoiceExtractionError(
     'OpenAI response did not include textual content'
   );
