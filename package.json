@@ -1,0 +1,39 @@
+{
+  "name": "invoiceflow-ai",
+  "version": "0.1.0",
+  "description": "InvoiceFlow AI backend (Hono + Drizzle + Turso)",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "dev": "tsx --env-file=.env.local src/dev.ts",
+    "build": "tsc -p tsconfig.json",
+    "drizzle:generate": "drizzle-kit generate",
+    "drizzle:migrate": "drizzle-kit migrate",
+    "drizzle:studio": "drizzle-kit studio"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.670.0",
+    "@aws-sdk/s3-request-presigner": "^3.670.0",
+    "@hono/node-server": "^1.11.0",
+    "@hono/zod-validator": "^0.2.2",
+    "@libsql/client": "^0.15.15",
+    "drizzle-orm": "^0.35.3",
+    "hono": "^4.6.7",
+    "openai": "^4.63.0",
+    "ulid": "^2.3.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.12",
+    "drizzle-kit": "^0.26.2",
+    "dotenv": "^16.4.5",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.3"
+  }
+}

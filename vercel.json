@@ -1,0 +1,11 @@
+{
+  "functions": {
+    "api/index.ts": {
+      "runtime": "nodejs22.x"
+    }
+  },
+  "framework": "none",
+  "buildCommand": "npm run build",
+  "installCommand": "npm install"
+}
+
