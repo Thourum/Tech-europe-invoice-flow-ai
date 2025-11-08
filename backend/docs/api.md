@@ -108,6 +108,83 @@ Either `content` or `attachments` must be provided.
 
 ---
 
+### `GET /invoices`
+
+List invoices with optional filtering and pagination.
+
+- **Query Parameters**
+  - `status` – filter by invoice status (`pending`, `approved`, `rejected`, `clarification_needed`)
+  - `vendor` – partial vendor name match
+  - `q` – fuzzy match across vendor and invoice number
+  - `cursor` – opaque pagination cursor returned from previous response
+  - `limit` – results per page (default 20, max 50)
+
+- **Response** `200 OK`
+
+```json
+{
+  "invoices": [
+    {
+      "id": "01JD...",
+      "status": "pending",
+      "vendor": { "name": "ACME" },
+      "invoice": { "number": "INV-123", "totalAmount": 99.5 },
+      "lineItems": [ /* ... */ ],
+      "attachments": [ /* ... */ ],
+      "createdAt": 1731070220000
+    }
+  ],
+  "nextCursor": "eyIxNzMxMD..."
+}
+```
+
+---
+
+### `GET /invoices/:id`
+
+Fetch a single invoice with line items and attachments.
+
+- **Response** `200 OK`
+
+```json
+{
+  "invoice": {
+    "id": "01JD...",
+    "status": "pending",
+    "vendor": { "name": "ACME" },
+    "invoice": { "number": "INV-123", "totalAmount": 99.5 },
+    "lineItems": [ /* ... */ ],
+    "attachments": [ /* ... */ ],
+    "createdAt": 1731070220000
+  }
+}
+```
+
+- **Errors**
+  - `404` if the invoice is not found.
+
+---
+
+### `PATCH /invoices/:id`
+
+Update invoice status and/or approver notes.
+
+- **Request Body**
+
+```json
+{
+  "status": "approved",
+  "approverNotes": "Looks good to pay."
+}
+```
+
+- **Response** `200 OK` – updated invoice (same shape as `GET /invoices/:id`).
+- **Errors**
+  - `400` if neither `status` nor `approverNotes` supplied.
+  - `404` if the invoice is not found.
+
+---
+
 ## Gmail Integration
 
 ### `POST /integrations/gmail/link`
@@ -199,6 +276,26 @@ invoked yet; only metadata is returned.
   - `400` if the Gmail account has not been linked.
   - `401` if the session is missing/expired.
   - `500` for unexpected Gmail API errors.
+
+---
+
+## API Inventory
+
+| Method & Path | Description | Auth |
+| --- | --- | --- |
+| `GET /health` | Service health check | No |
+| `POST /attachments/presign` | Generate presigned upload URL | No |
+| `POST /invoices/process` | Run OCR/extraction and persist invoice | No |
+| `GET /invoices` | List invoices with filters/pagination | No |
+| `GET /invoices/:id` | Fetch single invoice with relations | No |
+| `PATCH /invoices/:id` | Update invoice status/notes | No |
+| `POST /integrations/gmail/link` | Begin Gmail OAuth flow | Session |
+| `GET /integrations/gmail/oauth/callback` | Gmail OAuth callback handler | No |
+| `POST /integrations/gmail/check` | Fetch Gmail messages with invoice attachments | Session |
+| `POST /api/auth/sign-in/email` | Sign in with email/password | No |
+| `POST /api/auth/sign-up/email` | Register with email/password | No |
+| `POST /api/auth/sign-out` | Destroy current session | Session |
+| `GET /api/auth/get-session` | Retrieve current session/user | Optional |
 
 ---
 
