@@ -12,8 +12,7 @@ export default defineConfig({
   out: './drizzle',
   dialect: 'sqlite',
   dbCredentials: {
-    url: tursoUrl,
-    authToken: process.env.TURSO_AUTH_TOKEN
+    url: tursoUrl
   }
 });
 
