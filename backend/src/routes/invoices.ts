@@ -92,7 +92,9 @@ invoicesRoute.post(
 
         return {
           url: downloadUrl,
-          contentType: attachment.contentType
+          contentType: attachment.contentType,
+          filename: attachment.filename,
+          size: attachment.size
         };
       })
     );

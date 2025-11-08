@@ -1,23 +1,23 @@
-import { getDownloadUrl, head } from '@vercel/blob';
-import { generateClientTokenFromReadWriteToken } from '@vercel/blob/client';
+import { getDownloadUrl, head, put } from '@vercel/blob';
 
 const DEFAULT_PRESIGN_TTL_SECONDS = 900;
-const DEFAULT_BLOB_API_URL = 'https://vercel.com/api/blob';
 
-type PresignOptions = {
+type UploadOptions = {
   key: string;
+  data: Blob | File | ArrayBuffer | Buffer | Uint8Array | ReadableStream | string;
   contentType?: string;
-  expiresIn?: number;
-  maxSizeBytes?: number;
 };
 
-type UploadPresignResult = {
-  uploadUrl: string;
-  uploadToken: string;
-  authorizationHeader: string;
-  expiresIn: number;
-  expiresAt: string;
+type UploadResult = {
+  key: string;
+  url: string;
   publicUrl: string;
+  contentType: string;
+};
+
+type DownloadOptions = {
+  key: string;
+  expiresIn?: number;
 };
 
 type DownloadPresignResult = {
@@ -26,41 +26,31 @@ type DownloadPresignResult = {
   expiresIn: number;
 };
 
-export async function createPresignedUploadUrl({
+export async function uploadToBlob({
   key,
-  contentType,
-  expiresIn = DEFAULT_PRESIGN_TTL_SECONDS,
-  maxSizeBytes
-}: PresignOptions): Promise<UploadPresignResult> {
+  data,
+  contentType
+}: UploadOptions): Promise<UploadResult> {
   const sanitizedKey = normalizeKey(key);
-  const ttlMs = Math.max(expiresIn, 1) * 1000;
-  const validUntil = Date.now() + ttlMs;
-
-  const uploadToken = await generateClientTokenFromReadWriteToken({
-    token: getReadWriteToken(),
-    pathname: sanitizedKey,
-    allowedContentTypes: contentType ? [contentType] : undefined,
-    maximumSizeInBytes: maxSizeBytes,
-    validUntil
+  const blob = await put(sanitizedKey, data as any, {
+    contentType,
+    addRandomSuffix: false,
+    access: 'public',
+    token: getReadWriteToken()
   });
 
-  const uploadUrl = buildUploadUrl(sanitizedKey);
-  const publicUrl = resolveBlobUrl(sanitizedKey);
-
   return {
-    uploadUrl,
-    uploadToken,
-    authorizationHeader: `Bearer ${uploadToken}`,
-    expiresIn,
-    expiresAt: new Date(validUntil).toISOString(),
-    publicUrl
+    key: sanitizedKey,
+    url: blob.url,
+    publicUrl: resolveBlobUrl(sanitizedKey),
+    contentType: blob.contentType ?? contentType ?? 'application/octet-stream'
   };
 }
 
 export async function createPresignedDownloadUrl({
   key,
   expiresIn = DEFAULT_PRESIGN_TTL_SECONDS
-}: Omit<PresignOptions, 'contentType' | 'maxSizeBytes'>): Promise<DownloadPresignResult> {
+}: DownloadOptions): Promise<DownloadPresignResult> {
   const sanitizedKey = normalizeKey(key);
   const publicUrl = resolveBlobUrl(sanitizedKey);
   const metadata = await head(publicUrl);
@@ -93,18 +83,6 @@ function sanitizeForUrlPath(path: string) {
     .split('/')
     .map((segment) => encodeURIComponent(segment))
     .join('/');
-}
-
-function buildUploadUrl(key: string) {
-  const params = new URLSearchParams({ pathname: key });
-  const baseUrl =
-    process.env.VERCEL_BLOB_API_URL ??
-    process.env.NEXT_PUBLIC_VERCEL_BLOB_API_URL ??
-    DEFAULT_BLOB_API_URL;
-  const trimmedBase = baseUrl.endsWith('/')
-    ? baseUrl.slice(0, -1)
-    : baseUrl;
-  return `${trimmedBase}/?${params.toString()}`;
 }
 
 function getPublicBaseUrl() {
