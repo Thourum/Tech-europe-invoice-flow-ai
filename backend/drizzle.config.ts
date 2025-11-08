@@ -10,9 +10,10 @@ const tursoUrl =
 export default defineConfig({
   schema: './src/db/schema.ts',
   out: './drizzle',
-  dialect: 'sqlite',
+  dialect: 'turso',
   dbCredentials: {
-    url: tursoUrl
-  }
+    url: tursoUrl,
+    authToken: process.env.TURSO_AUTH_TOKEN,
+  },
 });
 

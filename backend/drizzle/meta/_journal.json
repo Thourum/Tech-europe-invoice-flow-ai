@@ -15,6 +15,13 @@
       "when": 1762606657677,
       "tag": "0001_groovy_hellfire_club",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1762609326448,
+      "tag": "0002_mute_giant_girl",
+      "breakpoints": true
     }
   ]
 }
